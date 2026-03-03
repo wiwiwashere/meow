@@ -1,5 +1,5 @@
 # Meow
-A deep learning project to classify animals into three categories: cats and non-cats
+A deep learning project to classify animals into 2 categories: cats and non-cats
 
 ## Project Structure
 Brief explanation of the folder structure...
