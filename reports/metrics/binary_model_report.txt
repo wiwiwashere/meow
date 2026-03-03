@@ -1,0 +1,5 @@
+CAT DETECTOR - BINARY CLASSIFICATION REPORT
+==================================================Accuracy:  1.000
+Precision: 0.000
+Recall:    0.000
+F1-Score:  0.000
