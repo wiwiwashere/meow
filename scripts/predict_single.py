@@ -1,99 +1,169 @@
+# #!/usr/bin/env python
+# """
+# Run the trained cat classifier on a single image.
+
+# Usage:
+#   python scripts/predict_single.py path/to/image.jpg
+#   python scripts/predict_single.py path/to/image.jpg --model models/best_binary_model.keras
+#   python scripts/predict_single.py path/to/image.jpg --threshold 0.6
+# """
+# import sys
+# import os
+# import argparse
+# import numpy as np
+# import tensorflow as tf
+# from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+# IMG_SIZE     = (224, 224)
+# DEFAULT_MODEL = 'models/best_binary_model.keras'
+
+
+# def load_model(model_path):
+#     if not os.path.exists(model_path):
+#         # Also try .h5 fallback
+#         h5_path = model_path.replace('.keras', '.h5')
+#         if os.path.exists(h5_path):
+#             model_path = h5_path
+#         else:
+#             print(f"Error: Model not found at {model_path}")
+#             print("Have you trained the model yet? Run: python scripts/train_bi.py")
+#             sys.exit(1)
+
+#     print(f"Loading model from {model_path}...")
+#     return tf.keras.models.load_model(model_path)
+
+
+# def preprocess_image(image_path):
+#     if not os.path.exists(image_path):
+#         print(f"Error: Image not found at {image_path}")
+#         sys.exit(1)
+
+#     img = load_img(image_path, target_size=IMG_SIZE)
+#     arr = img_to_array(img)
+#     arr = tf.keras.applications.efficientnet.preprocess_input(arr)
+#     return np.expand_dims(arr, axis=0)
+
+
+# def predict(model, image_array, threshold=0.5):
+#     prob = float(model.predict(image_array, verbose=0)[0][0])
+#     # prob close to 0 → cat, close to 1 → not_cat  (class_indices: cat=0, not_cat=1)
+#     is_cat = prob < threshold
+#     label = "Cat" if is_cat else "Not a cat"
+#     conf = (1 - prob) if is_cat else prob
+#     return label, conf, prob
+
+
+# def main():
+#     parser = argparse.ArgumentParser(description='Cat vs Not-Cat classifier')
+#     parser.add_argument('image_path', type=str,
+#                         help='Path to the image to classify')
+#     parser.add_argument('--model', type=str, default=DEFAULT_MODEL,
+#                         help=f'Path to trained model (default: {DEFAULT_MODEL})')
+#     parser.add_argument('--threshold', type=float, default=0.5,
+#                         help='Decision threshold (default: 0.5)')
+#     args = parser.parse_args()
+
+#     model = load_model(args.model)
+#     image_array = preprocess_image(args.image_path)
+#     label, conf, raw_prob = predict(model, image_array, args.threshold)
+
+#     print(f"\nImage    : {args.image_path}")
+#     print(f"Result   : {label}")
+#     print(f"Confidence: {conf:.1%}")
+#     print(f"Raw score : {raw_prob:.4f}  (0=cat, 1=not_cat, threshold={args.threshold})")
+
+
+# if __name__ == "__main__":
+#     main()
+
+
 #!/usr/bin/env python
 """
-Simple script to test if an image contains a cat
-Usage: python scripts/predict_binary.py path/to/image.jpg
+Run the trained cat classifier on a single image.
+Sends an SMS via Twilio if a cat is detected.
+
+Usage:
+  python scripts/predict_single.py path/to/image.jpg
+  python scripts/predict_single.py path/to/image.jpg --no-alert
+  python scripts/predict_single.py path/to/image.jpg --threshold 0.6
 """
 import sys
 import os
-import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
 import argparse
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.applications.efficientnet import preprocess_input
 
-def load_and_preprocess_image(img_path, target_size=(224, 224)):
-    """Load and preprocess image for prediction"""
-    img = image.load_img(img_path, target_size=target_size)
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array / 255.0  # Normalize
-    return img_array
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.notifications.twilio_alert import send_cat_alert
 
-
-def display_image(img_path, title):
-    """Display the image being tested"""
-    img = mpimg.imread(img_path)
-    plt.figure(figsize=(6, 6))
-    plt.imshow(img)
-    plt.title(title, fontsize=14, fontweight='bold')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
+IMG_SIZE      = (224, 224)
+DEFAULT_MODEL = 'models/best_binary_model.keras'
 
 
-def is_cat(img_path, model_path='models/final_binary_model.h5'):
-    """
-    Check if image contains a cat
-    Returns: dict with 'is_cat' (bool) and 'confidence' (float)
-    """
-    
-    # Load model
-    model = load_model(model_path)
-    
-    # Load and preprocess image
-    img_array = load_and_preprocess_image(img_path)
-    
-    # Predict
-    probability = model.predict(img_array, verbose=0)[0][0]
-    
-    # Binary decision (cat = probability > 0.5)
-    is_cat = probability < 0.5  # Because cat is class 0, not_cat is class 1
-    
-    result = {
-        'is_cat': bool(is_cat),
-        'probability': float(probability),
-        'confidence': float(1 - probability) if is_cat else float(probability)
-    }
-    
-    return result
+def load_model(model_path):
+    if not os.path.exists(model_path):
+        h5_path = model_path.replace('.keras', '.h5')
+        if os.path.exists(h5_path):
+            model_path = h5_path
+        else:
+            print(f"Error: Model not found at {model_path}")
+            print("Have you trained the model yet? Run: python scripts/train_bi.py")
+            sys.exit(1)
+    print(f"Loading model from {model_path}...")
+    return tf.keras.models.load_model(model_path)
+
+
+def preprocess_image(image_path):
+    if not os.path.exists(image_path):
+        print(f"Error: Image not found at {image_path}")
+        sys.exit(1)
+    img = load_img(image_path, target_size=IMG_SIZE)
+    arr = img_to_array(img)
+    arr = preprocess_input(arr)
+    return np.expand_dims(arr, axis=0)
+
+
+def predict(model, image_array, threshold=0.5):
+    prob   = float(model.predict(image_array, verbose=0)[0][0])
+    is_cat = prob < threshold
+    label  = "Cat" if is_cat else "Not a cat"
+    conf   = (1 - prob) if is_cat else prob
+    return label, conf, prob, is_cat
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Detect if an image contains a cat')
-    parser.add_argument('image_path', help='Path to image file')
-    parser.add_argument('--model', default='models/final_binary_model.h5',
-                       help='Path to model file')
-    
+    parser = argparse.ArgumentParser(description='Cat vs Not-Cat classifier')
+    parser.add_argument('image_path',  type=str, help='Path to image')
+    parser.add_argument('--model',     type=str, default=DEFAULT_MODEL)
+    parser.add_argument('--threshold', type=float, default=0.5)
+    parser.add_argument('--no-alert',  action='store_true',
+                        help='Skip SMS alert even if cat is detected')
     args = parser.parse_args()
-    
-    if not os.path.exists(args.image_path):
-        print(f"Error: Image not found at {args.image_path}")
-        sys.exit(1)
-    
-    try:
-        result = is_cat(args.image_path, args.model)
-        
-        print("\n")
-        print("="*50)
-        print("CAT DETECTOR RESULT")
-        print("="*50)
-        print(f"Image: {args.image_path}")
-        print("-"*50)
-        
-        if result['is_cat']:
-            display_image(args.image_path, title="This is a CAT!")
-            print(f"Confidence: {result['confidence']:.2%}")          
-        else:
-            display_image(args.image_path, title="This is NOT a CAT!")
-            print(f"Confidence: {result['confidence']:.2%}")
 
-        print(f"Raw probability: {result['probability']:.4f}")
-        print("="*50)
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+    model                         = load_model(args.model)
+    image_array                   = preprocess_image(args.image_path)
+    label, conf, raw_prob, is_cat = predict(model, image_array, args.threshold)
+
+    print(f"\nImage     : {args.image_path}")
+    print(f"Result    : {label}")
+    print(f"Confidence: {conf:.1%}")
+    print(f"Raw score : {raw_prob:.4f}  (0=cat, 1=not_cat, threshold={args.threshold})")
+
+    if is_cat and not args.no_alert:
+        print("\nCat detected — sending SMS alert...")
+        success = send_cat_alert(
+            confidence=conf,
+            source="predict_single",
+            image_path=args.image_path
+        )
+        print("SMS sent!" if success else "SMS failed — check your .env file")
+    elif not is_cat:
+        print("\nNo cat detected — no alert sent")
+    else:
+        print("\n(alerts disabled via --no-alert)")
+
 
 if __name__ == "__main__":
     main()

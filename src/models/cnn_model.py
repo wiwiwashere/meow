@@ -3,7 +3,7 @@ from tensorflow.keras import layers, models
 import yaml
 import os
 
-def create_cnn_model(input_shape=(224, 224, 3), num_classes=3):
+def create_cnn_model(input_shape=(224, 224, 3)):
     """
     Create a CNN model from scratch
     """
@@ -32,26 +32,19 @@ def create_cnn_model(input_shape=(224, 224, 3), num_classes=3):
         layers.MaxPooling2D(2, 2),
         layers.Dropout(0.25),
         
-        # Fourth convolutional block
-        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
-        layers.BatchNormalization(),
-        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D(2, 2),
-        layers.Dropout(0.25),
-        
         # Classifier
-        layers.Flatten(),
-        layers.Dense(512, activation='relu'),
+        # layers.Flatten(),
+        layers.GlobalAveragePooling2D(),  # Better than Flatten
+        layers.Dense(128, activation='relu'),
         layers.BatchNormalization(),
         layers.Dropout(0.5),
-        layers.Dense(256, activation='relu'),
-        layers.BatchNormalization(),
-        layers.Dropout(0.5),
-        layers.Dense(num_classes, activation='softmax')
+
+        # Binary output (sigmoid for probability)
+        layers.Dense(1, activation='sigmoid', name='cnn_output')
     ])
     
     return model
+
 
 if __name__ == "__main__":
     # Test the model
