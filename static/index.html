@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Detector</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Cat Detector</h1>
+    <div id="status-pill" class="pill pill-idle">No camera</div>
+  </header>
+
+  <main>
+
+    <!-- Camera setup -->
+    <section class="card" id="camera-setup">
+      <h2>Camera</h2>
+      <p class="muted">Choose a camera source and grant permission to start detection.</p>
+
+      <select id="camera-select" disabled>
+        <option value="">— select a camera —</option>
+      </select>
+
+      <div class="cam-btn-row">
+        <button id="permission-btn" onclick="requestPermission()">Allow camera access</button>
+        <button id="start-btn" class="secondary" onclick="startCamera()" disabled>Start</button>
+        <button id="stop-btn" class="secondary" onclick="stopCamera()" disabled>Stop</button>
+      </div>
+
+      <p id="cam-error" class="alert-msg err"></p>
+    </section>
+
+    <!-- Live feed -->
+    <section class="card">
+      <h2>Live feed</h2>
+      <div class="feed-wrapper">
+        <video id="feed" autoplay playsinline muted></video>
+        <canvas id="canvas" style="display:none"></canvas>
+        <div id="feed-placeholder" class="feed-placeholder">
+          <span>Camera not started</span>
+        </div>
+      </div>
+      <div class="detection-bar">
+        <span id="det-label">—</span>
+        <span id="det-conf" class="conf">—</span>
+      </div>
+    </section>
+
+    <!-- Alert button -->
+    <section class="card">
+      <h2>WhatsApp alert</h2>
+      <p class="muted">Send a manual WhatsApp message with the current detection result.</p>
+      <button id="alert-btn" onclick="triggerAlert()">Send alert now</button>
+      <p id="alert-msg" class="alert-msg"></p>
+    </section>
+
+    <!-- Detection history -->
+    <section class="card">
+      <h2>Detection history</h2>
+      <div id="history-list">
+        <p class="muted">No detections yet.</p>
+      </div>
+      <button class="secondary" onclick="loadHistory()">Refresh</button>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

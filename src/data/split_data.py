@@ -78,7 +78,7 @@ def split_and_copy(image_paths, dest_folder, class_name,
         out_dir = os.path.join(dest_folder, split_name, class_name)
         os.makedirs(out_dir, exist_ok=True)
 
-        for src_path in tqdm(split_images, desc=f"    → {split_name}/{class_name}", leave=False):
+        for src_path in tqdm(split_images, desc=f"  -> {split_name}/{class_name}", leave=False):
             filename = os.path.basename(src_path)
             shutil.copy2(src_path, os.path.join(out_dir, filename))
 
