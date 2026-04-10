@@ -36,19 +36,27 @@ sys.path.append(str(Path(__file__).parent.parent))
 from app.database import DetectionDB
 from src.notifications.twilio_alert import send_cat_alert
 
+from huggingface_hub import hf_hub_download
+
 # ── Setup ─────────────────────────────────────────────────────────────────────
 
 app        = FastAPI(title="Cat Detector")
 STATIC_DIR = Path(__file__).parent.parent / "static"
-MODEL_PATH = "models/best_binary_model.keras"
+# MODEL_PATH = "models/best_binary_model.keras"
 IMG_SIZE   = (224, 224)
 THRESHOLD  = 0.5
 
+model_path = hf_hub_download(
+    repo_id="wiwiwashere/meow",
+    filename="best_binary_model.keras"
+)
+model = tf.keras.models.load_model(model_path)
+
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-print(f"Loading model from {MODEL_PATH}...")
-model = tf.keras.models.load_model(MODEL_PATH)
-print("Model ready.")
+# print(f"Loading model from {MODEL_PATH}...")
+# model = tf.keras.models.load_model(MODEL_PATH)
+# print("Model ready.")
 
 db = DetectionDB()
 
@@ -60,6 +68,13 @@ _state = {
     "is_cat"    : False,
     "timestamp" : time.time(),
 }
+
+model_path = hf_hub_download(
+    repo_id="wiwiwashere/meow",
+    filename="best_binary_model.keras"
+)
+model = tf.keras.models.load_model(model_path)
+
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
