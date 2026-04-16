@@ -7,3 +7,4 @@ tensorflow
 sqlalchemy
 twilio
 numpy
+python-multipart
