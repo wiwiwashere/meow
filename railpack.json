@@ -3,6 +3,10 @@
   "steps": {
     "install": {
       "commands": ["pip install -r requirements.txt"]
+    },
+    "build": {
+      "inputs": [{ "step": "install" }],
+      "commands": ["echo Build step complete"]
     }
   },
   "deploy": {

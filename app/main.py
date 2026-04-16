@@ -20,6 +20,7 @@ Open:
   http://<your-local-ip>:8000       (mobile on same WiFi)
 """
 import io
+import os
 import sys
 import time
 import threading
@@ -32,9 +33,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from tensorflow.keras.applications.efficientnet import preprocess_input
 
-sys.path.append(str(Path(__file__).parent.parent))
-from app.database import DetectionDB
-from src.notifications.twilio_alert import send_cat_alert
+# sys.path.append(str(Path(__file__).parent.parent))
+# from app.database import DetectionDB
+# from src.notifications.twilio_alert import send_cat_alert
 
 from huggingface_hub import hf_hub_download
 
@@ -50,7 +51,7 @@ model_path = hf_hub_download(
     repo_id="wiwiwashere/meow",
     filename="best_binary_model.keras"
 )
-model = tf.keras.models.load_model(model_path)
+model = None
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -62,6 +63,7 @@ db = DetectionDB()
 
 # Shared last detection (updated by /predict_frame)
 _lock  = threading.Lock()
+
 _state = {
     "label"     : "—",
     "confidence": 0.0,
@@ -69,19 +71,35 @@ _state = {
     "timestamp" : time.time(),
 }
 
-model_path = hf_hub_download(
-    repo_id="wiwiwashere/meow",
-    filename="best_binary_model.keras"
-)
-model = tf.keras.models.load_model(model_path)
+# model_path = hf_hub_download(
+#     repo_id="wiwiwashere/meow",
+#     filename="best_binary_model.keras"
+# )
+# model = tf.keras.models.load_model(model_path)
 
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+@app.on_event("startup")
+def load_model():
+    global model
+
+    model_path = hf_hub_download(
+        repo_id="wiwiwashere/meow",
+        filename="best_binary_model.keras",
+        token=os.getenv("HF_TOKEN")  # okay if None for public repos
+    )
+
+    model = tf.keras.models.load_model(model_path)
+    print("Model loaded successfully.")
+
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return (STATIC_DIR / "index.html").read_text()
+    index_file = STATIC_DIR / "index.html"
+    if not index_file.exists():
+        raise HTTPException(status_code=404, detail="index.html not found")
+    return index_file.read_text(encoding="utf-8")
 
 
 @app.post("/predict_frame")
@@ -91,8 +109,17 @@ async def predict_frame(file: UploadFile = File(...)):
     Also saves cat detections to the history DB.
     History only records new detections when the label is different from the last one, to avoid duplicates when the cat is still in view.
     """
+    global model
+
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model is still loading")
+
     contents = await file.read()
-    img = Image.open(io.BytesIO(contents)).convert("RGB").resize(IMG_SIZE)
+    try:
+        img = Image.open(io.BytesIO(contents)).convert("RGB").resize(IMG_SIZE)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
     arr = np.array(img, dtype=np.float32)
     arr = preprocess_input(arr)
     arr = np.expand_dims(arr, axis=0)
