@@ -154,9 +154,9 @@ async def predict_frame(file: UploadFile = File(...)):
         db.save(label, conf, "predict_frame")
 
     return JSONResponse({
-        "label"     : label,
+        "label": label,
         "confidence": round(conf * 100, 1),
-        "is_cat"    : is_cat,
+        "is_cat" : is_cat,
     })
 
 
@@ -164,10 +164,11 @@ async def predict_frame(file: UploadFile = File(...)):
 def status():
     with _lock:
         s = dict(_state)
+
     return JSONResponse({
-        "label"     : s["label"],
+        "label" : s["label"],
         "confidence": round(s["confidence"] * 100, 1),
-        "is_cat"    : s["is_cat"],
+        "is_cat" : s["is_cat"],
         "timestamp" : s["timestamp"],
     })
 
@@ -181,8 +182,12 @@ def history(limit: int = 20):
 def trigger_alert():
     with _lock:
         s = dict(_state)
+
     if not s["is_cat"]:
-        return JSONResponse({"success": False, "message": "No cat currently detected"})
+        return JSONResponse({
+            "success": False,
+            "message": "No cat currently detected"
+            })
     success = send_cat_alert(source="manual (web app)")
     return JSONResponse({
         "success": success,
