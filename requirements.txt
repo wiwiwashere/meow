@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+huggingface_hub
+pillow
+tensorflow
+sqlalchemy
+twilio
+numpy
