@@ -1,3 +1,15 @@
 {
-  "start": "gunicorn app.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000"
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "install": {
+      "commands": ["npm install"]
+    },
+    "build": {
+      "inputs": [{ "step": "install" }],
+      "commands": ["...", "./my-custom-build.sh"]
+    }
+  },
+  "deploy": {
+    "startCommand": "gunicorn app.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000"
+  }
 }
