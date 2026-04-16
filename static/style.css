@@ -129,8 +129,13 @@ button {
   cursor: pointer;
   transition: opacity 0.15s;
 }
-button:active  { opacity: 0.8; }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:active  { 
+  opacity: 0.8;
+}
+button:disabled { 
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 button.secondary {
   background: var(--border);
   color: var(--text);
