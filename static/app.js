@@ -242,7 +242,7 @@ async function submitSignup() {
     const data = await res.json();
 
     if (!res.ok) {
-      msg.textContent = data.error || "Signup failed.";
+      msg.textContent = data.detail || "Signup failed.";
       msg.classList.add("err");
       return;
     }

@@ -201,25 +201,34 @@ def trigger_alert():
     with _lock:
         s = dict(_state)
 
+    label = "cat" if s["is_cat"] else "no cat"
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT phone FROM whatsapp_subscribers")
     users = cur.fetchall()
     conn.close()
 
+    if not users:
+        return {
+            "success": False,
+            "message": "No signed-up WhatsApp users found."
+        }
+
     results = []
 
     for (phone,) in users:
         try:
-            label = "cat" if s["is_cat"] else "no cat"
             msg = send_whatsapp_alert(phone, label, s["confidence"])
             results.append({"phone": phone, "sid": msg.sid})
         except Exception as e:
             results.append({"phone": phone, "error": str(e)})
 
+    any_sent = any("sid" in r for r in results)
+
     return {
-        "success": True,
-        "message": label,
+        "success": any_sent,
+        "message": label if any_sent else "Alert failed for all users.",
         "results": results
     }
 

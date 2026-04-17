@@ -33,11 +33,6 @@ body {
   background:
     linear-gradient(rgba(10, 12, 18, 0.72), rgba(10, 12, 18, 0.82)),
     url("https://i.pinimg.com/736x/84/82/e8/8482e8b0026b21756824900f9462a51b.jpg");
-    /* url("https://target.scene7.com/is/image/Target/GUEST_1fd980e7-d057-42a5-b73e-c46c430acc8a?wid=750&qlt=80"); */
-    /* url("https://i.pinimg.com/736x/81/94/5d/81945d20b5b9b187d027105be3ba8b49.jpg"); */
-    /* url("https://i.pinimg.com/736x/81/d1/72/81d172001900ed5dd1554ec9cf601d5b.jpg"); */
-    /* url("https://i.pinimg.com/736x/b9/dc/9c/b9dc9c5b5fb66393fa386d5f674e356d.jpg"); */
-    /* url("https://target.scene7.com/is/image/Target/GUEST_37ca11d4-4bf6-4f84-80c3-743fe65b4894?wid=750&qlt=80"); */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -88,10 +83,10 @@ h2 {
 }
 
 .feed-card { grid-area: feed; }
+.signup-card { grid-area: signup; }
 .camera-card { grid-area: camera; }
 .alert-card { grid-area: alert; }
 .history-card { grid-area: history; }
-.signup-card {grid-area: sign up; }
 
 .card {
   background: var(--surface);
@@ -103,7 +98,7 @@ h2 {
 }
 
 .card:hover {
-  border-color: rgba(255,255,255,0.14);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .card-head {
@@ -139,31 +134,36 @@ h2 {
 }
 
 .pill-idle {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--muted);
 }
+
 .pill-cat {
   background: var(--green-bg);
   color: var(--green);
-  border-color: rgba(74,222,128,0.2);
+  border-color: rgba(74, 222, 128, 0.2);
 }
+
 .pill-not-cat {
   background: var(--blue-bg);
   color: var(--blue);
-  border-color: rgba(96,165,250,0.2);
+  border-color: rgba(96, 165, 250, 0.2);
 }
+
 .pill-error {
   background: var(--red-bg);
   color: var(--red);
-  border-color: rgba(248,113,113,0.2);
+  border-color: rgba(248, 113, 113, 0.2);
 }
 
 select,
-button {
+button,
+input {
   font: inherit;
 }
 
-select {
+select,
+input[type="tel"] {
   width: 100%;
   padding: 0.82rem 0.95rem;
   background: rgba(10, 12, 18, 0.88);
@@ -175,12 +175,16 @@ select {
   appearance: none;
 }
 
-select:focus-visible {
+select:focus-visible,
+input[type="tel"]:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
 
-select:disabled {
+select:disabled,
+input:disabled,
+button:disabled {
   opacity: 0.5;
 }
 
@@ -215,13 +219,12 @@ button:active {
 }
 
 button:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
 
 button.secondary {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font-weight: 600;
 }
@@ -240,7 +243,7 @@ button.secondary {
   overflow: hidden;
   border-radius: 16px;
   background: #050608;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 14px;
 }
 
@@ -259,8 +262,7 @@ button.secondary {
   justify-content: center;
   color: var(--muted);
   font-size: 0.95rem;
-  background:
-    linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45));
+  background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45));
 }
 
 .detection-bar {
@@ -275,8 +277,8 @@ button.secondary {
   gap: 0.25rem;
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .detection-main.right {
@@ -313,7 +315,7 @@ button.secondary {
   height: 9px;
   border-radius: 999px;
   background: var(--green);
-  box-shadow: 0 0 0 6px rgba(74,222,128,0.14);
+  box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.14);
 }
 
 .alert-msg {
@@ -342,7 +344,7 @@ button.secondary {
   justify-content: space-between;
   gap: 0.6rem;
   padding: 0.85rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.9rem;
 }
 
@@ -366,10 +368,34 @@ button.secondary {
   white-space: nowrap;
 }
 
+.signup-info {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text);
+}
+
+.signup-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 0.4rem;
+}
+
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;
     grid-template-areas:
+      "signup"
       "camera"
       "feed"
       "alert"
@@ -382,6 +408,10 @@ button.secondary {
 }
 
 @media (max-width: 640px) {
+  body {
+    background-attachment: scroll;
+  }
+
   .page-shell {
     padding: 12px;
   }
@@ -400,11 +430,9 @@ button.secondary {
     border-radius: 16px;
   }
 
-  .cam-btn-row {
-    grid-template-columns: 1fr;
-  }
-
-  .detection-bar {
+  .cam-btn-row,
+  .detection-bar,
+  .signup-btn-row {
     grid-template-columns: 1fr;
   }
 
@@ -416,10 +444,4 @@ button.secondary {
     max-height: none;
     overflow: visible;
   }
-
-  .modal.hidden {
-  display: none;
-}
-
-
 }
