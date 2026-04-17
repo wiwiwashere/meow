@@ -33,8 +33,8 @@ TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM")  # e.g. whatsapp:+14155
 def send_whatsapp_alert(phone: str, label: str, confidence: float | None = None):
     account_sid = os.getenv("TWILIO_ACCOUNT_SID")
     auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-    from_number = os.getenv("TWILIO_WHATSAPP_FROM")
-    to_number = os.getenv("TWILIO_TO_NUMBER")
+    from_number = os.getenv("TWILIO_FROM_NUMBER")
+    # to_number = os.getenv("TWILIO_TO_NUMBER")
 
     missing = [k for k, v in {
         "TWILIO_ACCOUNT_SID": account_sid,
@@ -53,8 +53,8 @@ def send_whatsapp_alert(phone: str, label: str, confidence: float | None = None)
 
     return client.messages.create(
         from_=from_number,
-        # to=f"whatsapp:{phone}",
-        to=to_number,
+        to=f"whatsapp:{phone}",
+        # to=to_number,
         body=body
     )
  

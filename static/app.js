@@ -193,8 +193,7 @@ async function triggerAlert() {
 async function loadHistory() {
   const container = document.getElementById("history-list");
   try {
-    const res  = await fetch("/history?limit=20");
-    
+    const res = await fetch(`${API_BASE}/history?limit=20`);
     const data = await res.json();
 
     if (!data.detections.length) {
