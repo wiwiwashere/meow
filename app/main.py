@@ -271,3 +271,14 @@ def signup_whatsapp(req: SignupRequest):
     conn.close()
 
     return {"ok": True, "phone": phone}
+
+
+@app.post("/clear-users")
+def clear_users():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM whatsapp_subscribers")
+    conn.commit()
+    conn.close()
+
+    return {"ok": True, "message": "All users cleared"}
