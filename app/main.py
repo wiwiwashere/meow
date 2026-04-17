@@ -35,17 +35,25 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 
 # sys.path.append(str(Path(__file__).parent.parent))
 from app.database import DetectionDB
-from src.notifications.twilio_alert import send_cat_alert
+# from src.notifications.twilio_alert import send_cat_alert
 
 from huggingface_hub import hf_hub_download
 
-# ── Setup ─────────────────────────────────────────────────────────────────────
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import re
+import sqlite3
+from src.notifications.twilio_alert import send_whatsapp_alert
+
+
+# ---- Setup ---------------------------------------
 
 app        = FastAPI(title="Cat Detector")
 STATIC_DIR = Path(__file__).parent.parent / "static"
 # MODEL_PATH = "models/best_binary_model.keras"
 IMG_SIZE   = (224, 224)
 THRESHOLD  = 0.5
+DB_PATH = "users.db"
 
 model_path = hf_hub_download(
     repo_id="wiwiwashere/meow",
@@ -78,8 +86,17 @@ _state = {
 # model = tf.keras.models.load_model(model_path)
 
 
+class SignupRequest(BaseModel):
+    phone: str
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+class AlertRequest(BaseModel):
+    phone: str
+    label: str
+    confidence: float | None = None
+
+
+
+# --- Routes --------------------------------------------
 @app.on_event("startup")
 def load_model():
     global model
@@ -178,18 +195,70 @@ def history(limit: int = 20):
     return JSONResponse({"detections": db.get_recent(limit)})
 
 
+
 @app.post("/alert")
 def trigger_alert():
     with _lock:
         s = dict(_state)
 
-    if not s["is_cat"]:
-        return JSONResponse({
-            "success": False,
-            "message": "No cat currently detected"
-            })
-    success = send_cat_alert(source="manual (web app)")
-    return JSONResponse({
-        "success": success,
-        "message": "WhatsApp alert sent!" if success else "Alert failed — check .env",
-    })
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT phone FROM whatsapp_subscribers")
+    users = cur.fetchall()
+    conn.close()
+
+    results = []
+
+    for (phone,) in users:
+        try:
+            label = "cat" if s["is_cat"] else "no cat"
+            msg = send_whatsapp_alert(phone, label, s["confidence"])
+            results.append({"phone": phone, "sid": msg.sid})
+        except Exception as e:
+            results.append({"phone": phone, "error": str(e)})
+
+    return {
+        "success": True,
+        "message": label,
+        "results": results
+    }
+
+
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS whatsapp_subscribers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT UNIQUE NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def normalize_phone(phone: str) -> str:
+    phone = phone.strip()
+    if not re.fullmatch(r"\+\d{10,15}", phone):
+        raise ValueError("Phone number must be in E.164 format, like +13525551234")
+    return phone
+
+@app.post("/signup-whatsapp")
+def signup_whatsapp(req: SignupRequest):
+    try:
+        phone = normalize_phone(req.phone)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT OR IGNORE INTO whatsapp_subscribers (phone) VALUES (?)",
+        (phone,)
+    )
+    conn.commit()
+    conn.close()
+
+    return {"ok": True, "phone": phone}

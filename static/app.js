@@ -1,9 +1,9 @@
-// ── State ───
+// ----- state ---
 let stream        = null;
 let detectInterval = null;
 const DETECT_MS   = 1500;   // send a frame for prediction every 1.5s
 
-// Elements
+// elements
 const video         = document.getElementById("feed");
 const canvas        = document.getElementById("canvas");
 const placeholder   = document.getElementById("feed-placeholder");
@@ -19,7 +19,7 @@ const detConf       = document.getElementById("det-conf");
 const API_BASE = "https://meow-production-f89c.up.railway.app";
 
 
-// ── camera permission + device list ───
+// ---- camera permission + device list --------
 
 async function requestPermission() {
   camError.textContent = "";
@@ -57,7 +57,7 @@ async function populateCameraList() {
 }
 
 
-// ── start / stop camera ───
+// --- start / stop camera ---
 
 async function startCamera() {
   if (stream) stopCamera();
@@ -108,7 +108,7 @@ function stopCamera() {
 }
 
 
-// ── Send frame to backend for prediction ──────
+// -- Send frame to backend for prediction ----------
 
 async function sendFrame() {
   if (!stream || video.readyState < 2) return;
@@ -153,7 +153,7 @@ function updateUI(data) {
 }
 
 
-// ── WhatsApp alert ────
+// -- WhatsApp alert -----
 
 async function triggerAlert() {
   const btn = document.getElementById("alert-btn");
@@ -185,7 +185,7 @@ async function triggerAlert() {
 }
 
 
-// ── Detection history ───
+// -- Detection history -----
 
 async function loadHistory() {
   const container = document.getElementById("history-list");
@@ -209,6 +209,59 @@ async function loadHistory() {
     container.innerHTML = "<p class='muted'>Failed to load history.</p>";
   }
 }
+
+// ----instruction-------
+
+function openSignupModal() {
+  document.getElementById("signup-modal").classList.remove("hidden");
+}
+
+function closeSignupModal() {
+  document.getElementById("signup-modal").classList.add("hidden");
+}
+
+async function submitSignup() {
+  const phone = document.getElementById("signup-phone").value.trim();
+  const msg = document.getElementById("signup-msg");
+
+  if (!phone) {
+    msg.textContent = "Please enter your WhatsApp number.";
+    msg.classList.add("err");
+    return;
+  }
+
+  try {
+    const res = await fetch("/signup-whatsapp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.textContent = data.error || "Signup failed.";
+      msg.classList.add("err");
+      return;
+    }
+
+    localStorage.setItem("alertPhone", phone);
+    msg.textContent = "Number saved. You can now receive alerts.";
+    msg.classList.remove("err");
+
+    setTimeout(() => closeSignupModal(), 900);
+  } catch (err) {
+    msg.textContent = "Could not save your number.";
+    msg.classList.add("err");
+  }
+}
+
+window.addEventListener("load", () => {
+  const savedPhone = localStorage.getItem("alertPhone");
+  if (!savedPhone) {
+    openSignupModal();
+  }
+});
 
 loadHistory();
 setInterval(loadHistory, 10000);

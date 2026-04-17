@@ -81,6 +81,28 @@
           <p class="muted">No detections yet.</p>
         </div>
       </section>
+
+      <section class="card signup-card" id="signup-card">
+        <h2>Enable WhatsApp alerts</h2>
+        <p class="muted">
+          To receive alerts, first join the WhatsApp sandbox.
+        </p>
+
+        <div class="signup-info">
+          <p><strong>1.</strong> Open WhatsApp</p>
+          <p><strong>2.</strong> Message: <span class="mono">+1 415 523 8886</span></p>
+          <p><strong>3.</strong> Send: <span class="mono">join your-code</span></p>
+        </div>
+
+        <input id="signup-phone" type="tel" placeholder="+13525551234" />
+
+        <p id="signup-msg" class="alert-msg"></p>
+
+        <div class="signup-btn-row">
+          <button class="secondary" onclick="hideSignup()">Later</button>
+          <button onclick="submitSignup()">Yes I joined</button>
+        </div>
+      </section>
     </main>
   </div>
 

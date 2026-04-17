@@ -80,17 +80,18 @@ h2 {
   display: grid;
   grid-template-columns: 1.45fr 0.95fr;
   grid-template-areas:
+    "feed signup"
     "feed camera"
     "feed alert"
     "feed history";
   gap: 18px;
-  align-items: start;
 }
 
 .feed-card { grid-area: feed; }
 .camera-card { grid-area: camera; }
 .alert-card { grid-area: alert; }
 .history-card { grid-area: history; }
+.signup-card {grid-area: sign up; }
 
 .card {
   background: var(--surface);
@@ -415,4 +416,10 @@ button.secondary {
     max-height: none;
     overflow: visible;
   }
+
+  .modal.hidden {
+  display: none;
+}
+
+
 }
