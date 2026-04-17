@@ -54,7 +54,7 @@ def send_whatsapp_alert(phone: str, label: str, confidence: float | None = None)
     return client.messages.create(
         from_=from_number,
         # to=f"whatsapp:{phone}",
-        to=to_number
+        to=to_number,
         body=body
     )
  
