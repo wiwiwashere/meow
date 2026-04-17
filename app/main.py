@@ -183,11 +183,11 @@ def trigger_alert():
     with _lock:
         s = dict(_state)
 
-    # if not s["is_cat"]:
-    #     return JSONResponse({
-    #         "success": False,
-    #         "message": "No cat currently detected"
-    #         })
+    if not s["is_cat"]:
+        return JSONResponse({
+            "success": False,
+            "message": "No cat currently detected"
+            })
     success = send_cat_alert(source="manual (web app)")
     return JSONResponse({
         "success": success,

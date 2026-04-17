@@ -16,6 +16,8 @@ const pill          = document.getElementById("status-pill");
 const detLabel      = document.getElementById("det-label");
 const detConf       = document.getElementById("det-conf");
 
+const API_BASE = "https://meow-production-f89c.up.railway.app/";
+
 
 // ── camera permission + device list ───
 
@@ -123,7 +125,10 @@ async function sendFrame() {
       const form = new FormData();
       form.append("file", blob, "frame.jpg");
 
-      const res  = await fetch("/predict_frame", { method: "POST", body: form });
+      const res  = await fetch("${API_BASE}/predict_frame", {
+        method: "POST",
+        body: form 
+      });
       const data = await res.json();
 
       updateUI(data);
@@ -160,12 +165,18 @@ async function triggerAlert() {
   msg.className   = "alert-msg";
 
   try {
-    const res  = await fetch("/alert", { method: "POST" });
+    const res  = await fetch(`${API_BASE}/alert`, { method: "POST" });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+
     const data = await res.json();
     msg.textContent = data.message;
     msg.className   = data.success ? "alert-msg" : "alert-msg err";
-  } catch {
-    msg.textContent = "Request failed — is the server running?";
+
+  } catch (err) {
+    msg.textContent = `Request failed: ${err.message}`;
     msg.className   = "alert-msg err";
   } finally {
     btn.disabled    = false;

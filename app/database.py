@@ -5,7 +5,10 @@ import sqlite3
 import time
 from pathlib import Path
 
-DB_PATH = Path("reports/detections.db")
+import os
+from pathlib import Path
+
+DB_PATH = Path(os.getenv("DB_PATH", "reports/detections.db"))
 
 
 class DetectionDB:
