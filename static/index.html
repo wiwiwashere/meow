@@ -1,3 +1,5 @@
+</html>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,66 +9,80 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <div class="page-shell">
+    <header>
+      <h1>Cat Detector</h1>
+      <div id="status-pill" class="pill pill-idle">No camera</div>
+    </header>
 
-  <header>
-    <h1>Cat Detector</h1>
-    <div id="status-pill" class="pill pill-idle">No camera</div>
-  </header>
+    <main class="dashboard">
+      <section class="card camera-card" id="camera-setup">
+        <h2>Camera</h2>
+        <p class="muted">Choose a camera source and grant permission to start detection.</p>
 
-  <main>
+        <select id="camera-select" disabled>
+          <option value="">— select a camera —</option>
+        </select>
 
-    <!-- Camera setup -->
-    <section class="card" id="camera-setup">
-      <h2>Camera</h2>
-      <p class="muted">Choose a camera source and grant permission to start detection.</p>
-
-      <select id="camera-select" disabled>
-        <option value="">— select a camera —</option>
-      </select>
-
-      <div class="cam-btn-row">
-        <button id="permission-btn" onclick="requestPermission()">Allow camera access</button>
-        <button id="start-btn" class="secondary" onclick="startCamera()" disabled>Start</button>
-        <button id="stop-btn" class="secondary" onclick="stopCamera()" disabled>Stop</button>
-      </div>
-
-      <p id="cam-error" class="alert-msg err"></p>
-    </section>
-
-    <!-- Live feed -->
-    <section class="card">
-      <h2>Live feed</h2>
-      <div class="feed-wrapper">
-        <video id="feed" autoplay playsinline muted></video>
-        <canvas id="canvas" style="display:none"></canvas>
-        <div id="feed-placeholder" class="feed-placeholder">
-          <span>Camera not started</span>
+        <div class="cam-btn-row">
+          <button id="permission-btn" onclick="requestPermission()">Allow camera access</button>
+          <button id="start-btn" class="secondary" onclick="startCamera()" disabled>Start</button>
+          <button id="stop-btn" class="secondary" onclick="stopCamera()" disabled>Stop</button>
         </div>
-      </div>
-      <div class="detection-bar">
-        <span id="det-label">—</span>
-        <span id="det-conf" class="conf">—</span>
-      </div>
-    </section>
 
-    <!-- Alert button -->
-    <section class="card">
-      <h2>WhatsApp alert</h2>
-      <p class="muted">Send a manual WhatsApp message with the current detection result.</p>
-      <button id="alert-btn" onclick="triggerAlert()">Send alert now</button>
-      <p id="alert-msg" class="alert-msg"></p>
-    </section>
+        <p id="cam-error" class="alert-msg err"></p>
+      </section>
 
-    <!-- Detection history -->
-    <section class="card">
-      <h2>Detection history</h2>
-      <div id="history-list">
-        <p class="muted">No detections yet.</p>
-      </div>
-      <button class="secondary" onclick="loadHistory()">Refresh</button>
-    </section>
+      <section class="card feed-card">
+        <div class="card-head">
+          <div>
+            <h2>Live feed</h2>
+            <p class="muted no-margin">Real-time cat detection</p>
+          </div>
+          <div class="live-indicator">
+            <span class="dot"></span>
+            Live
+          </div>
+        </div>
 
-  </main>
+        <div class="feed-wrapper">
+          <video id="feed" autoplay playsinline muted></video>
+          <canvas id="canvas" style="display:none"></canvas>
+          <div id="feed-placeholder" class="feed-placeholder">
+            <span>Camera not started</span>
+          </div>
+        </div>
+
+        <div class="detection-bar">
+          <div class="detection-main">
+            <span class="label-caption">Detection</span>
+            <span id="det-label" class="det-value">—</span>
+          </div>
+          <div class="detection-main right">
+            <span class="label-caption">Confidence</span>
+            <span id="det-conf" class="det-value conf">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card alert-card">
+        <h2>WhatsApp alert</h2>
+        <p class="muted">Send a manual WhatsApp message with the current detection result.</p>
+        <button id="alert-btn" onclick="triggerAlert()">Send alert now</button>
+        <p id="alert-msg" class="alert-msg"></p>
+      </section>
+
+      <section class="card history-card">
+        <div class="card-head">
+          <h2>Detection history</h2>
+          <button class="secondary small-btn" onclick="loadHistory()">Refresh</button>
+        </div>
+        <div id="history-list">
+          <p class="muted">No detections yet.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

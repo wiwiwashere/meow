@@ -1,4 +1,4 @@
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── State ───
 let stream        = null;
 let detectInterval = null;
 const DETECT_MS   = 1500;   // send a frame for prediction every 1.5s
@@ -17,7 +17,7 @@ const detLabel      = document.getElementById("det-label");
 const detConf       = document.getElementById("det-conf");
 
 
-// ── camera permission + device list ───────────────────────────────────────────
+// ── camera permission + device list ───
 
 async function requestPermission() {
   camError.textContent = "";
@@ -55,7 +55,7 @@ async function populateCameraList() {
 }
 
 
-// ── start / stop camera ───────────────────────────────────────────────────────
+// ── start / stop camera ───
 
 async function startCamera() {
   if (stream) stopCamera();
@@ -148,7 +148,7 @@ function updateUI(data) {
 }
 
 
-// ── WhatsApp alert ────────────────────────────────────────────────────────────
+// ── WhatsApp alert ────
 
 async function triggerAlert() {
   const btn = document.getElementById("alert-btn");
@@ -174,7 +174,7 @@ async function triggerAlert() {
 }
 
 
-// ── Detection history ─────────────────────────────────────────────────────────
+// ── Detection history ───
 
 async function loadHistory() {
   const container = document.getElementById("history-list");
