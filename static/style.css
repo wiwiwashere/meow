@@ -73,6 +73,7 @@ h2 {
 
 .dashboard {
   display: grid;
+  align-items: start;
   grid-template-columns: 1.45fr 0.95fr;
   grid-template-areas:
     "feed signup"
@@ -107,6 +108,20 @@ h2 {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 12px;
+}
+
+.feed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feed-wrapper {
+  flex: 0 0 auto;
+}
+
+.detection-bar {
+  flex: 0 0 auto;
 }
 
 .muted {
