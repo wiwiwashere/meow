@@ -35,7 +35,7 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 
 # sys.path.append(str(Path(__file__).parent.parent))
 from app.database import DetectionDB
-# from src.notifications.twilio_alert import send_cat_alert
+from src.notifications.twilio_alert import send_cat_alert
 
 from huggingface_hub import hf_hub_download
 
