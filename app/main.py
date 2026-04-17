@@ -197,7 +197,7 @@ def history(limit: int = 20):
 
 
 @app.post("/alert")
-def trigger_alert():
+def triggerAlert():
     with _lock:
         s = dict(_state)
 
