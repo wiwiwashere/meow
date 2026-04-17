@@ -154,7 +154,6 @@ function updateUI(data) {
 
 
 // -- WhatsApp alert -----
-
 async function triggerAlert() {
   const btn = document.getElementById("alert-btn");
   const msg = document.getElementById("alert-msg");
@@ -172,7 +171,11 @@ async function triggerAlert() {
     }
 
     const data = await res.json();
-    msg.textContent = data.message;
+    if (data.results) {
+      msg.textContent = `${data.message} — ${JSON.stringify(data.results)}`;
+    } else {
+      msg.textContent = data.message;
+    }
     msg.className   = data.success ? "alert-msg" : "alert-msg err";
 
   } catch (err) {
@@ -191,6 +194,7 @@ async function loadHistory() {
   const container = document.getElementById("history-list");
   try {
     const res  = await fetch("/history?limit=20");
+    
     const data = await res.json();
 
     if (!data.detections.length) {
