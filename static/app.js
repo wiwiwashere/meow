@@ -212,12 +212,14 @@ async function loadHistory() {
 
 // ----instruction-------
 
-function openSignupModal() {
-  document.getElementById("signup-modal").classList.remove("hidden");
+function showSignupCard() {
+  const card = document.getElementById("signup-card");
+  if (card) card.style.display = "";
 }
 
-function closeSignupModal() {
-  document.getElementById("signup-modal").classList.add("hidden");
+function hideSignup() {
+  const card = document.getElementById("signup-card");
+  if (card) card.style.display = "none";
 }
 
 async function submitSignup() {
@@ -231,7 +233,7 @@ async function submitSignup() {
   }
 
   try {
-    const res = await fetch("/signup-whatsapp", {
+    const res = await fetch(const res = await fetch(`${API_BASE}/signup-whatsapp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone })
@@ -249,7 +251,7 @@ async function submitSignup() {
     msg.textContent = "Number saved. You can now receive alerts.";
     msg.classList.remove("err");
 
-    setTimeout(() => closeSignupModal(), 900);
+    setTimeout(() => hideSignup(), 900);
   } catch (err) {
     msg.textContent = "Could not save your number.";
     msg.classList.add("err");
@@ -259,7 +261,7 @@ async function submitSignup() {
 window.addEventListener("load", () => {
   const savedPhone = localStorage.getItem("alertPhone");
   if (!savedPhone) {
-    openSignupModal();
+    showSignupCard();
   }
 });
 
