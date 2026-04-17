@@ -16,7 +16,7 @@ const pill          = document.getElementById("status-pill");
 const detLabel      = document.getElementById("det-label");
 const detConf       = document.getElementById("det-conf");
 
-const API_BASE = "https://meow-production-f89c.up.railway.app/";
+const API_BASE = "https://meow-production-f89c.up.railway.app";
 
 
 // ── camera permission + device list ───
@@ -108,7 +108,7 @@ function stopCamera() {
 }
 
 
-// ── Send frame to backend for prediction ──────────────────────────────────────
+// ── Send frame to backend for prediction ──────
 
 async function sendFrame() {
   if (!stream || video.readyState < 2) return;
