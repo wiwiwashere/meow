@@ -125,7 +125,7 @@ async function sendFrame() {
       const form = new FormData();
       form.append("file", blob, "frame.jpg");
 
-      const res  = await fetch("${API_BASE}/predict_frame", {
+      const res  = await fetch(`${API_BASE}/predict_frame`, {
         method: "POST",
         body: form 
       });
