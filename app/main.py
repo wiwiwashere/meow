@@ -12,12 +12,10 @@ Endpoints:
   POST /alert             → manually trigger WhatsApp alert
 
 Run:
-  pip install fastapi uvicorn pillow sqlalchemy python-dotenv twilio tensorflow
   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 Open:
   http://localhost:8000             (desktop)
-  http://<your-local-ip>:8000       (mobile on same WiFi)
 """
 import io
 import os
@@ -53,7 +51,8 @@ STATIC_DIR = Path(__file__).parent.parent / "static"
 # MODEL_PATH = "models/best_binary_model.keras"
 IMG_SIZE   = (224, 224)
 THRESHOLD  = 0.5
-DB_PATH = "users.db"
+USER_DB = "users.db"
+ALERT_COOLDOWN = 60  # seconds
 
 model_path = hf_hub_download(
     repo_id="wiwiwashere/meow",
@@ -111,6 +110,32 @@ def load_model():
     print("Model loaded successfully.")
 
 
+def _get_subscribers():
+    with sqlite3.connect(USERS_DB) as conn:
+        return [r[0] for r in conn.execute("SELECT phone FROM whatsapp_subscribers")]
+
+
+def _send_alerts(conf: float, label: str):
+    phones = _get_subscribers()
+
+    if not phones:
+        print("Auto-alert: no subscribers registered.")
+        return
+
+    for phone in phones:
+        try:
+            send_whatsapp_alert(phone, label, conf)
+        except Exception as e:
+            print(f"Alert failed for {phone}: {e}")
+
+
+def normalize_phone(phone: str) -> str:
+    phone = phone.strip()
+    if not re.fullmatch(r"\+\d{10,15}", phone):
+        raise ValueError("Phone number must be in E.164 format, like +13525551234")
+    return phone
+
+
 @app.get("/", response_class=HTMLResponse)
 def index():
     index_file = STATIC_DIR / "index.html"
@@ -124,19 +149,22 @@ async def predict_frame(file: UploadFile = File(...)):
     """
     Receive a JPEG frame from the browser, run the model, return the result.
     Also saves cat detections to the history DB.
+    Auto triggers WhatsApp alerts for new cat detections, but not for "not a cat" to avoid spam. (WIth Cooldown)
     History only records new detections when the label is different from the last one, to avoid duplicates when the cat is still in view.
     """
-    global model
+    global model, _last_alert_time
 
     if model is None:
         raise HTTPException(status_code=503, detail="Model is still loading")
 
+    # decode image
     contents = await file.read()
     try:
         img = Image.open(io.BytesIO(contents)).convert("RGB").resize(IMG_SIZE)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
+    # run prediction
     arr = np.array(img, dtype=np.float32)
     arr = preprocess_input(arr)
     arr = np.expand_dims(arr, axis=0)
@@ -146,17 +174,25 @@ async def predict_frame(file: UploadFile = File(...)):
     conf   = (1 - prob) if is_cat else prob
     label  = "Cat" if is_cat else "Not a cat"
 
-    prev_label = _state["label"]
 
+    # Read previous state safely
+    with _lock:
+        prev_label = _state["label"]
+        prev_conf  = _state["confidence"]
+
+
+    # decides update and alert logic
     needs_update = False
+    needs_trigger = False
 
 
-    # save to history
+    # history mechanism
     if is_cat and prev_label != "Cat":  # new cat detected
         needs_update = True
+        needs_trigger = True
     elif not is_cat and prev_label != "Not a cat": # new non-cat detected
         needs_update = True
-    elif is_cat and prev_label == "Cat" and (prob - _state["confidence"] > 0.1): # confidence increased significantly for cat
+    elif is_cat and prev_label == "Cat" and (prob - _state["confidence"] > 0.15): # confidence increased significantly for cat
         needs_update = True
 
 
@@ -169,6 +205,12 @@ async def predict_frame(file: UploadFile = File(...)):
                 "timestamp" : time.time(),
             })
         db.save(label, conf, "predict_frame")
+    
+    if needs_trigger:
+        now = time.time()
+        if now - _last_alert_time > ALERT_COOLDOWN:
+            _send_alerts(conf, label)
+            _last_alert_time = now
 
     return JSONResponse({
         "label": label,
@@ -198,26 +240,23 @@ def history(limit: int = 20):
 
 @app.post("/alert")
 def trigger_alert():
+    '''Manually trigger a WhatsApp alert with the current state. Useful for testing.'''
     with _lock:
         s = dict(_state)
 
     label = "cat" if s["is_cat"] else "no cat"
 
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("SELECT phone FROM whatsapp_subscribers")
-    users = cur.fetchall()
-    conn.close()
+    phones = _get_subscribers()
 
-    if not users:
-        return {
+    if not phones:
+        return JSONResponse({
             "success": False,
             "message": "No signed-up WhatsApp users found."
-        }
+        })
 
     results = []
 
-    for (phone,) in users:
+    for phone in phones:
         try:
             msg = send_whatsapp_alert(phone, label, s["confidence"])
             results.append({"phone": phone, "sid": msg.sid})
@@ -226,16 +265,16 @@ def trigger_alert():
 
     any_sent = any("sid" in r for r in results)
 
-    return {
+    return JSONResponse({
         "success": any_sent,
         "message": label if any_sent else "Alert failed for all users.",
         "results": results
-    }
+    })
 
 
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(USER_DB)
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS whatsapp_subscribers (
@@ -248,12 +287,6 @@ def init_db():
 
 init_db()
 
-def normalize_phone(phone: str) -> str:
-    phone = phone.strip()
-    if not re.fullmatch(r"\+\d{10,15}", phone):
-        raise ValueError("Phone number must be in E.164 format, like +13525551234")
-    return phone
-
 @app.post("/signup-whatsapp")
 def signup_whatsapp(req: SignupRequest):
     try:
@@ -261,7 +294,7 @@ def signup_whatsapp(req: SignupRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(USER_DB)
     cur = conn.cursor()
     cur.execute(
         "INSERT OR IGNORE INTO whatsapp_subscribers (phone) VALUES (?)",
@@ -275,7 +308,7 @@ def signup_whatsapp(req: SignupRequest):
 
 @app.post("/clear-users")
 def clear_users():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(USER_DB)
     cur = conn.cursor()
     cur.execute("DELETE FROM whatsapp_subscribers")
     conn.commit()
