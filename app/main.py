@@ -71,6 +71,8 @@ db = DetectionDB()
 # Shared last detection (updated by /predict_frame)
 _lock  = threading.Lock()
 
+_last_alert_time = 0.0
+
 _state = {
     "label"     : "—",
     "confidence": 0.0,
