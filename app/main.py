@@ -111,7 +111,7 @@ def load_model():
 
 
 def _get_subscribers():
-    with sqlite3.connect(USERS_DB) as conn:
+    with sqlite3.connect(USER_DB) as conn:
         return [r[0] for r in conn.execute("SELECT phone FROM whatsapp_subscribers")]
 
 
