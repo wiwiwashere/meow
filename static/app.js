@@ -16,7 +16,7 @@ const pill          = document.getElementById("status-pill");
 const detLabel      = document.getElementById("det-label");
 const detConf       = document.getElementById("det-conf");
 
-const API_BASE = "https://meow-production-f89c.up.railway.app";
+const API_BASE = "https://meow.up.railway.app";
 
 
 // ---- camera permission + device list --------
