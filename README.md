@@ -66,3 +66,9 @@ MEOW is a binary image classifier built with transfer learning on a custom datas
 2. Send: `join aware-month`
 3. You'll receive a confirmation saying you're now subscribed
 4. Alerts fire automatically when a cat is detected (60s cooldown between messages)
+
+---
+
+## Demo Video
+
+[![Watch the demo](https://img.youtube.com/vi/kaF1jJNUAdU/maxresdefault.jpg)](https://youtu.be/kaF1jJNUAdU)
